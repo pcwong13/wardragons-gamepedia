@@ -12,15 +12,63 @@ def convertCamel (camel_input):
     words = re.findall(r'[A-Z]?[a-z]+|[A-Z]{2,}(?=[A-Z][a-z]|\d|\W|$)|\d+', camel_input)
     return ' '.join(map(str.lower, words))
 
+#upload options
+upload = 1
+
+if upload == 1:
+    # UPLOAD TO WIKI
+    S = requests.Session()
+
+    URL = "https://wardragons.gamepedia.com/api.php"
+
+    # Step 1: GET Request to fetch login token
+    PARAMS_0 = {
+        "action": "query",
+        "meta": "tokens",
+        "type": "login",
+        "format": "json"
+    }
+
+    R = S.get(url=URL, params=PARAMS_0)
+    DATA = R.json()
+
+    LOGIN_TOKEN = DATA['query']['tokens']['logintoken']
+
+    # Step 2: POST Request to log in. Use of main account for login is not
+    # supported. Obtain credentials via Special:BotPasswords
+    # (https://www.mediawiki.org/wiki/Special:BotPasswords) for lgname & lgpassword
+    PARAMS_1 = {
+        "action": "login",
+        "lgname": wikilogin.lgname,
+        "lgpassword": wikilogin.lgpassword,
+        "lgtoken": LOGIN_TOKEN,
+        "format": "json"
+    }
+
+    R = S.post(URL, data=PARAMS_1)
+
+    # Step 3: GET request to fetch CSRF token
+    PARAMS_2 = {
+        "action": "query",
+        "meta": "tokens",
+        "format": "json"
+    }
+
+    R = S.get(url=URL, params=PARAMS_2)
+    DATA = R.json()
+
+    CSRF_TOKEN = DATA['query']['tokens']['csrftoken']
+
+
 for dragon_name in dragondata.dragon_upgrade_filename_by_name:
     if dragondata.dragon_show_in_stable_by_name[dragon_name] == '0':
         continue
-    #if 'E19Q3' in dragondata.dragon_upgrade_filename_by_name[dragon_name]:
+    #if 'E19Q4Invoker' in dragondata.dragon_upgrade_filename_by_name[dragon_name]:
     #    print 'Skipping: {:}'.format(dragondata.dragon_upgrade_filename_by_name[dragon_name])
     #    continue
 
     filename = 'wd/assets/'+dragondata.dragon_upgrade_filename_by_name[dragon_name]
-    print filename
+    print filename, dragon_name
 
     f = open('output/'+dragon_name+'.upgrade.txt', 'w+')
 
@@ -92,6 +140,8 @@ for dragon_name in dragondata.dragon_upgrade_filename_by_name:
             upgrade_cost = row['upgradeCost']
             upgrade_fields = upgrade_cost.split(":")
             if 'Stone' in upgrade_fields[0]:
+                if 'PurpleStone' in upgrade_fields[0]:
+                    rss_str = '{{Icon|purple stone}}'
                 if 'GreenStone' in upgrade_fields[0]:
                     rss_str = '{{Icon|green stone}}'
                 if 'GoldStone' in upgrade_fields[0]:
@@ -114,6 +164,8 @@ for dragon_name in dragondata.dragon_upgrade_filename_by_name:
                     rss_str = '{{Icon|empyrean stone}}'
                 if 'AbyssalStone' in upgrade_fields[0]:
                     rss_str = '{{Icon|abyssal stone}}'
+                if 'EldritchStone' in upgrade_fields[0]:
+                    rss_str = '{{Icon|eldritch stone}}'
             else:
                 if upgrade_cost != '':
                     rss_str = '{:,}'.format(int(upgrade_fields[1]))
@@ -124,54 +176,10 @@ for dragon_name in dragondata.dragon_upgrade_filename_by_name:
         f.write(string)
     f.close()
 
-    upload = 1
     title = 'Template:'+dragon_name+'Stats'
     text = string
 
     if upload == 1:
-        # UPLOAD TO WIKI
-        S = requests.Session()
-
-        URL = "https://wardragons.gamepedia.com/api.php"
-
-        # Step 1: GET Request to fetch login token
-        PARAMS_0 = {
-            "action": "query",
-            "meta": "tokens",
-            "type": "login",
-            "format": "json"
-        }
-
-        R = S.get(url=URL, params=PARAMS_0)
-        DATA = R.json()
-
-        LOGIN_TOKEN = DATA['query']['tokens']['logintoken']
-
-        # Step 2: POST Request to log in. Use of main account for login is not
-        # supported. Obtain credentials via Special:BotPasswords
-        # (https://www.mediawiki.org/wiki/Special:BotPasswords) for lgname & lgpassword
-        PARAMS_1 = {
-            "action": "login",
-            "lgname": wikilogin.lgname,
-            "lgpassword": wikilogin.lgpassword,
-            "lgtoken": LOGIN_TOKEN,
-            "format": "json"
-        }
-
-        R = S.post(URL, data=PARAMS_1)
-
-        # Step 3: GET request to fetch CSRF token
-        PARAMS_2 = {
-            "action": "query",
-            "meta": "tokens",
-            "format": "json"
-        }
-
-        R = S.get(url=URL, params=PARAMS_2)
-        DATA = R.json()
-
-        CSRF_TOKEN = DATA['query']['tokens']['csrftoken']
-
         # Step 4: POST request to edit a page
         PARAMS_3 = {
             "action": "edit",

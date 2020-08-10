@@ -19,6 +19,7 @@ def get_den_player_requirement(den_level):
     for idx,key in enumerate(den_by_level):
         if key == den_level:
             return den_by_level[key]
+    return '999'
 
 
 # list of [rows as dict]

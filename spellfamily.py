@@ -28,11 +28,22 @@ def createSwitchStatement(key):
                 spellId = spellItem.split(":")
                 string += '{{Abilities|Ability='+spellId[1]+'}}<br />'
             string = string[:-6] + '\n'
+        elif key == 'resistTypes':
+            spellids = row[key].split("|")
+            for spellItem in spellids:
+                string += '{{Abilities|Ability='+spellItem+'}}<br />'
+            string = string[:-6] + '\n'
         elif key == 'protectedAttackTypes':
             attackTypes = row[key].split("|")
             for types in attackTypes:
                 atkId = types.split(":")
                 string += spelldata.attack_type_name_by_id[atkId[0]] + ' ' + atkId[1] + '%<br />'
+            string += '\n'
+        elif key == 'attackType':
+            attackTypes = row[key].split("|")
+            for types in attackTypes:
+                string += spelldata.attack_type_name_by_id[types] + '<br />'
+            string = string[:-6]
             string += '\n'
         elif key == 'ragePoints':
             string += str(int(row[key])/100)+'\n'
@@ -87,6 +98,8 @@ def createSwitchStatement(key):
             string += str(float(row[key])*100)+'\n'
         elif key == 'hpAsPercentOfDragonHP':
             string += str(float(row[key])*100)+'\n'
+        elif key == 'startingRageAmount':
+            string += str(int(row[key])/100)+'\n'
         else:
             if row[key] == '':
                 string += '0\n'
@@ -157,9 +170,10 @@ def createTable(name):
     table_string += '    |-\n'
     table_string += '        |style="text-align: right"|Ability Family\n'
     table_string += '        |style="text-align: left"|' + name + '\n'
-    table_string += '    |-\n'
-    table_string += '        |style="text-align: right"|Max # of Casts\n'
-    table_string += '        |style="text-align: left"|{{#var:maxTimes}} times\n'
+    if name != 'ResistAbility':
+        table_string += '    |-\n'
+        table_string += '        |style="text-align: right"|Max # of Casts\n'
+        table_string += '        |style="text-align: left"|{{#var:maxTimes}} times\n'
     for field in getTableFormat(name):
         key = field.keys()[0]
         table_string += '    |-\n'
@@ -180,7 +194,7 @@ def createTable(name):
 def createFamily():
     string = '\n==Abilities in This Family==\n'
     for row in spell_data:
-        if row['identifier'] in skip_family_list:
+        if row['identifier'] in spell.skip_list:
             continue
         try:
             if row['level'] != '':
@@ -192,24 +206,12 @@ def createFamily():
     return string
 
 #configuration
-file_skip_list = ['SpeedBoostSpell.csv','HoverSpell.csv','TeleportSpell.csv','IncreaseRageGenerationSpell.csv']
+upload = 1
 skip_list = ['identifier', 'commonIdentifier', 'particleFlightDuration','projectileBlockedTextIdentifier',
     'distanceAhead','dragonType','dragonScale','h','battleTextIdentifier']
 tower_id =  ['archerTower','cannonTower','ballista','stormTower','trebuchet','lightningTower','mageTower','mageBlueTower','iceTurret','fireTurret',
     'elementalFlakDark','elementalFlakFire','elementalFlakIce','elementalFlakWind','elementalFlakEarth',
     'darkTotem','fireTotem','iceTotem','windTotem','earthTotem','woodFarm','hogFarm','perchIsland03','perchIsland06','perchIsland08']
-skip_family_list = ['adaptiveBreath2',
-        'alterFate2',
-        'bloodEssenceConsume1',
-        'chainLightning3',
-        'chargedShieldSuper',
-        'chainLightningSuper',
-        'spectralForm2','spectralForm3','spectralForm4','spectralForm_warrior1',
-        'superHeal',
-        'superDeathGaze',
-        'whiteSummonDragon1',
-        'heatBlastShield2',
-]
 
 #Field text
 duration = 'Duration'
@@ -228,6 +230,7 @@ empoweredRageBonus = 'Empowered Rage Bonus'
 rageRegenerationPercentage = 'Rage Regeneration % of Normal'
 ragePointsBonus = 'Rage Gain per Cast'
 ragePercentageIncrease = 'Rage Regeneration Increase'
+startingRageAmount = 'Starting Rage Amount'
 #
 range = 'Range'
 splashRange = 'AOE Radius'
@@ -336,7 +339,17 @@ damagePercentageApplied = 'Damage Infliced to Dragon'
 shouldNormalDamageHitDisabledTowers = 'Damage Removes Disabled Tower Effect'
 damagePerSecond = 'Damage Inflicted Per Second as % of Max HP'
 damageDuration = 'Damage Duration'
+rampDamageMultiplier = 'Ramp Damage Multiplier'
+rampPeriod = 'Ramp Period'
+gracePeriod = 'Ramp Period'
+activeMultiplierCap = 'Active Multiplier Cap'
+percentDamageReduction = 'Damage from Attack Type Tower Reduced'
+attackType = 'Protection From Attack Types'
 
+ResistAbilityTable = [
+    {percentDamageReduction:'{{#var:percentDamageReduction}}%'},
+    {attackType:'{{#var:attackType}}'},
+]
 AbsorbMagicTable = [
     {ragePoints:'{{#var:ragePoints}}'},
     {duration:'{{#var:duration}} sec'},
@@ -850,8 +863,19 @@ AoeTable = [
     {splashRange:'{{#var:splashRange}}'},
     {damageAsPercentageOfMaxHP:'{{#var:damageAsPercentageOfMaxHP}}%'},
 ]
-
-
+DragonCurseTable = [
+    {startingRageAmount:'{{#var:startingRageAmount}}'},
+    {ragePointsBonus:'{{#var:ragePointsBonus}}'},
+    {attackBonusPercentage:'{{#var:attackBonusPercentage}}%'},
+    {healAsPercentageOfMaxHP:'{{#var:healAsPercentageOfMaxHP}}%'},
+]
+FireLanceTable = [
+    {ragePoints:'{{#var:ragePoints}}'},
+    {rampDamageMultiplier: '{{#var:rampDamageMultiplier}}'},
+    {rampPeriod: '{{#var:rampPeriod}}'},
+    {gracePeriod: '{{#var:gracePeriod}}'},
+    {activeMultiplierCap: '{{#var:activeMultiplierCap}}'},
+]
 
 table_format = [
     {'AbsorbMagicSpell':AbsorbMagicTable},
@@ -933,17 +957,16 @@ table_format = [
     {'StoneskinSpell':StoneskinTable},
     {'KamikazeSpell':KamikazeTable},
     {'AoeSpell':AoeTable},
+    {'DragonCurseSpell':DragonCurseTable},
+    {'FireLanceSpell':FireLanceTable},
+    #
+    {'ResistAbility':ResistAbilityTable},
+
 ]
 
-spell_filename = []
-for file in glob.glob('wd/assets/*Spell.csv'):
-    spell_filename.append(file.split('/')[-1])
-
-for filename in spell_filename:
-    if filename in file_skip_list:
-        continue
+for filename in spelldata.spell_filename:
     spell_name = filename[:-4]
-    #print spell_name
+    print spell_name
     spell_data = spelldata.getSpellData(spell_name)
     meta = createAbilityMeta()
     f = open('output/TEMPLATE_'+spell_name+'.txt', 'w+')
@@ -954,7 +977,6 @@ for filename in spell_filename:
     f.write(family)
     f.close()
 
-    upload = 1
     title = 'Template:'+spell_name
     text = meta + table + family
 

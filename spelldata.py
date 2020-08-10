@@ -1,6 +1,28 @@
 #!/usr/bin/env python
 import csv
 import glob
+import json
+# -------------------------------------
+# Helper script spelldata.py
+# Reads the CSV files and puts them into data structures
+# -------------------------------------
+# Decodes SpellCommon.csv - master table
+# Decodes FlavorText.csv - text descriptions based on locale
+# Decodes *Spell.csv - spell files
+# Decodes ResistAbility.csv - resist file
+# Decodes FreezeEffect.csv - spell debuff
+# Decodes GloomCloudSpellEffect.csv - spell debuff
+# Decodes AttackType.csv - resist ability to tower name mapping
+# -------------------------------------
+# Available Dicts % lists
+# -------------------------------------
+# text_by_id = {}               -- identifier:text
+# spell_filename = []           == list of csv spell files *Spell.csv + ResistAbility.csv
+# spells = []                   -- list of spell dicts
+# common_data = []              -- csv rows as list item
+# resist_data = []              -- csv rows as list item
+# debuffs = []                  -- csv rows as list item
+# attack_type_name_by_id = {}   -- identifier:displayName
 
 def getSpellData(name):
     for ability in spells:
@@ -21,10 +43,21 @@ with open('wd/assets/FlavorText.csv') as csvfile:
             continue
         text_by_id.update({row['identifier']:row['text']})
 
+file_skip_list = [
+        'SpeedBoostSpell.csv',  # currently not used by any dragon
+        'HoverSpell.csv',       # currently not used by any dragon
+        'TeleportSpell.csv',    # currently not used by any dragon
+        'IncreaseRageGenerationSpell.csv', # currently not used by any dragon
+    ]
+
 spell_filename = []
 for file in glob.glob('wd/assets/*Spell.csv'):
-    spell_filename.append(file.split('/')[-1])
-
+    filename = file.split('/')[-1]
+    if filename in file_skip_list:
+        #print "skipping {}".format(filename)
+        continue
+    spell_filename.append(filename)
+spell_filename.append('ResistAbility.csv')
 
 # spells = [ {SpellName: List of row data}, {SpellName: List of row data} ]
 spells = []
@@ -124,3 +157,7 @@ with open('wd/assets/AttackType.csv') as csvfile:
             continue
         attack_type_name_by_id.update({row['identifier']:row['displayName']})
 
+if __name__ == "__main__":
+    f = open('output/DEBUG_spelldata_py.txt','w')
+    f.write(json.dumps(spell_filename, sort_keys=True, indent=4))
+    f.close()

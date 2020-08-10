@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import spelldata
+import json
 
 spell_name_by_id = {}
 spell_desc_by_id = {}
@@ -10,6 +11,22 @@ spell_rage_by_id = {}
 resist_name_by_id = {}
 resist_desc_by_id = {}
 resist_icon_by_id = {}
+
+skip_list = [
+        'adaptiveBreath2',      # currently not used by any dragon
+        'alterFate2',           # currently not used by any dragon
+        'bloodEssenceConsume1', # currently not used by any dragon
+        'chainLightning3',      # used by Ryuu
+        'chargedShieldSuper',   # consumable
+        'chainLightningSuper',  # consumable
+        'heatBlastShield2',     # used by skarrSapphireDragon but obsolete at max level
+        'hover1',               # currently not used by any dragon
+        'innerFire01',          # consumable
+        'spectralForm2','spectralForm3','spectralForm4','spectralForm_warrior1', # currently not used by any dragon
+        'superHeal',            # consumable
+        'superDeathGaze',       # consumable
+        'whiteSummonDragon1',   # currently not used by any dragon
+    ]
 
 for r_row in spelldata.resist_data:
     resist_name_by_id.update({r_row['identifier']:spelldata.text_by_id[r_row['spellNameIdentifier']]})
@@ -103,11 +120,7 @@ for spell_family in spelldata.spells:
                     spell_icon_by_id.update({row['identifier']:c_row['icon']})
                     name_found = True
                     continue
-
-#for id in spell_icon_by_id:
-#    print "%s: %s" % (id, spell_icon_by_id[id])
-#for id in spell_rage_by_id:
-#    print "%s: %s" % (id, spell_rage_by_id[id])
-#for id in resist_name_by_id:
-#    print "%s: %s" % (id, resist_name_by_id[id])
-
+if __name__ == "__main__":
+    f = open('output/DEBUG_spell_py.txt','w')
+    f.write(json.dumps(spell.spell_name_by_id, sort_keys=True, indent=4))
+    f.close()

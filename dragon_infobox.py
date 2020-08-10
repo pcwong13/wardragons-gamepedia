@@ -15,6 +15,8 @@ seasonKey = {
     'E19Q1' : 'Springblossom',
     'E19Q2' : 'Summerkai',
     'E19Q3' : 'Withermoon',
+    'E19Q4' : 'Frostwreath',
+    'E20Q1' : 'Lotusbloom',
 }
 
 def format_time(sec):
@@ -45,6 +47,53 @@ replace_dict = {
         'ectoplasmicBreath219':'ectoplasmicBreath1', #somnnus
         'heatstroke209':'heatstroke1',# Cuauhtli
 }
+
+# Upload options
+upload = 1
+
+if upload == 1:
+    # UPLOAD TO WIKI
+    S = requests.Session()
+
+    URL = "https://wardragons.gamepedia.com/api.php"
+
+    # Step 1: GET Request to fetch login token
+    PARAMS_0 = {
+        "action": "query",
+        "meta": "tokens",
+        "type": "login",
+        "format": "json"
+    }
+
+    R = S.get(url=URL, params=PARAMS_0)
+    DATA = R.json()
+
+    LOGIN_TOKEN = DATA['query']['tokens']['logintoken']
+
+    # Step 2: POST Request to log in. Use of main account for login is not
+    # supported. Obtain credentials via Special:BotPasswords
+    # (https://www.mediawiki.org/wiki/Special:BotPasswords) for lgname & lgpassword
+    PARAMS_1 = {
+        "action": "login",
+        "lgname": wikilogin.lgname,
+        "lgpassword": wikilogin.lgpassword,
+        "lgtoken": LOGIN_TOKEN,
+        "format": "json"
+    }
+
+    R = S.post(URL, data=PARAMS_1)
+
+    # Step 3: GET request to fetch CSRF token
+    PARAMS_2 = {
+        "action": "query",
+        "meta": "tokens",
+        "format": "json"
+    }
+
+    R = S.get(url=URL, params=PARAMS_2)
+    DATA = R.json()
+
+    CSRF_TOKEN = DATA['query']['tokens']['csrftoken']
 
 # -----------------------------------------------------------------------------
 # Main processing loop
@@ -139,8 +188,8 @@ for dragon_name in dragondata.dragon_upgrade_filename_by_name:
             name = abi.split(":")
             identifierList.append(name[1])
         for x,ident in enumerate(identifierList):
-            if dragon_name == 'Skarr':
-                print ident
+            #if dragon_name == 'Skarr':
+            #    print ident
             abi_num = x+2
             abi_str = '|Ability{:}='.format(abi_num)
             if ident in replace_dict:
@@ -183,75 +232,54 @@ for dragon_name in dragondata.dragon_upgrade_filename_by_name:
     f.write('}}\n')
     f.close()
 
-
-    upload = 1
     title = dragon_name
-    section = '0'
-
-    if section == '0':
-        text = infobox
-    elif section == '1':
-        text = dragonability
-    elif section == '2':
-        text = breeding
 
     # -------------------------------------------------------------------------
     # Wiki Auto-Upload
     # -------------------------------------------------------------------------
 
     if upload == 1:
-        # UPLOAD TO WIKI
-        S = requests.Session()
-
-        URL = "https://wardragons.gamepedia.com/api.php"
-
-        # Step 1: GET Request to fetch login token
-        PARAMS_0 = {
-            "action": "query",
-            "meta": "tokens",
-            "type": "login",
-            "format": "json"
+        # Step 4: POST request to edit a page
+        PARAMS_3 = {
+            "action": "edit",
+            "title": title,
+            "section": "0",
+            "bot": "true",
+            "token": CSRF_TOKEN,
+            "format": "json",
+            "text": infobox
         }
 
-        R = S.get(url=URL, params=PARAMS_0)
+        R = S.post(URL, data=PARAMS_3)
         DATA = R.json()
 
-        LOGIN_TOKEN = DATA['query']['tokens']['logintoken']
-
-        # Step 2: POST Request to log in. Use of main account for login is not
-        # supported. Obtain credentials via Special:BotPasswords
-        # (https://www.mediawiki.org/wiki/Special:BotPasswords) for lgname & lgpassword
-        PARAMS_1 = {
-            "action": "login",
-            "lgname": wikilogin.lgname,
-            "lgpassword": wikilogin.lgpassword,
-            "lgtoken": LOGIN_TOKEN,
-            "format": "json"
-        }
-
-        R = S.post(URL, data=PARAMS_1)
-
-        # Step 3: GET request to fetch CSRF token
-        PARAMS_2 = {
-            "action": "query",
-            "meta": "tokens",
-            "format": "json"
-        }
-
-        R = S.get(url=URL, params=PARAMS_2)
-        DATA = R.json()
-
-        CSRF_TOKEN = DATA['query']['tokens']['csrftoken']
+        print(DATA)
 
         # Step 4: POST request to edit a page
         PARAMS_3 = {
             "action": "edit",
             "title": title,
-            "section": section,
+            "section": "1",
             "bot": "true",
             "token": CSRF_TOKEN,
             "format": "json",
-            "text": text
+            "text": dragonability
+        }
+
+        R = S.post(URL, data=PARAMS_3)
+        DATA = R.json()
+
+        print(DATA)
+
+        # Step 4: POST request to edit a page
+        PARAMS_3 = {
+            "action": "edit",
+            "title": title,
+            "section": "2",
+            "bot": "true",
+            "token": CSRF_TOKEN,
+            "format": "json",
+            "text": breeding
         }
 
         R = S.post(URL, data=PARAMS_3)

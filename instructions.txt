@@ -1,0 +1,27 @@
+Steps to update:
+
+Latest csv will always be https://wardragons.gaming-almanach.com/resources.7z
+
+Set up directory
+1. unzip wd.apk -d wd_vX.XX.X
+2. rm wd
+3. ln -s wd_vX.XX.X wd
+
+Update Spells
+4. Update  code for any new spell family
+5. python spellfamily.py
+
+Update Dragons
+6. Update season decoder
+7. python dragon_infobox.py (infobox)
+8. Add sections in pages for new dragons. Search upload progress for u'new'
+9. python dragon_stats_template.py
+
+Update Spell Infobox
+10. python dragon_abilites_infobox.py
+11. Add sections in pages for new spells. Search upload progress for u'new'
+
+Update Building Stats
+12. python building_stats_template.py
+
+

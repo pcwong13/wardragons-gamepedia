@@ -20,6 +20,8 @@ def resource_icon(name):
         return '{{Icon|fire shards}}'
     if name == 'elementalEmber':
         return '{{Icon|elemental embers}}'
+    if name == 'electrumBar':
+        return '{{Icon|electrum bar}}'
     if name == 'redEggCurrency':
         return '{{Icon|red egg}}'
     if name == 'purpleEggCurrency':
@@ -46,6 +48,8 @@ def resource_icon(name):
         return '{{Icon|harbinger egg}}'
     if name == 'vanguardEggCurrency':
         return '{{Icon|vanguard egg}}'
+    if name == 'empyreanEggCurrency':
+        return '{{Icon|empyrean egg}}'
     return 'ERROR: resource_icon()'
 
 def format_time(sec):
@@ -129,6 +133,7 @@ def getPlayerRequirementsAttackTower(row):
     else:
         string += '{:,}'.format(int(row['levelRequired'])) + '{{Icon|player level}}'
     string += ' {:,}'.format(int(row['requiredBuilderLevel'])) + '{{Icon|builder hut}}'
+    string += '<!--player requirements-->\n'
     return string
 
 def getUpgradeCost(row):
@@ -348,6 +353,7 @@ table_format = [
         {'elementalFlakIce':atkTowerTable},
         {'elementalFlakWind':atkTowerTable},
         {'elementalFlakEarth':atkTowerTable},
+        {'crystalHowitzer':atkTowerTable},
         #
         {'mageTower':mageTowerTable},
         {'mageBlueTower':mageTowerTable},
@@ -362,7 +368,52 @@ table_format = [
         {'woodFarm':rssTable},
 ]
 
+#Upload options
 upload = 1
+
+if upload == 1:
+    # UPLOAD TO WIKI
+    S = requests.Session()
+
+    URL = "https://wardragons.gamepedia.com/api.php"
+
+    # Step 1: GET Request to fetch login token
+    PARAMS_0 = {
+        "action": "query",
+        "meta": "tokens",
+        "type": "login",
+        "format": "json"
+    }
+
+    R = S.get(url=URL, params=PARAMS_0)
+    DATA = R.json()
+
+    LOGIN_TOKEN = DATA['query']['tokens']['logintoken']
+
+    # Step 2: POST Request to log in. Use of main account for login is not
+    # supported. Obtain credentials via Special:BotPasswords
+    # (https://www.mediawiki.org/wiki/Special:BotPasswords) for lgname & lgpassword
+    PARAMS_1 = {
+        "action": "login",
+        "lgname": wikilogin.lgname,
+        "lgpassword": wikilogin.lgpassword,
+        "lgtoken": LOGIN_TOKEN,
+        "format": "json"
+    }
+
+    R = S.post(URL, data=PARAMS_1)
+
+    # Step 3: GET request to fetch CSRF token
+    PARAMS_2 = {
+        "action": "query",
+        "meta": "tokens",
+        "format": "json"
+    }
+
+    R = S.get(url=URL, params=PARAMS_2)
+    DATA = R.json()
+
+    CSRF_TOKEN = DATA['query']['tokens']['csrftoken']
 
 for bld in table_format:
     bldId = bld.keys()[0]
@@ -391,50 +442,8 @@ for bld in table_format:
 
     title = 'Template:'+bldId+'Stats'
     text = table_string
+
     if upload == 1:
-        # UPLOAD TO WIKI
-        S = requests.Session()
-
-        URL = "https://wardragons.gamepedia.com/api.php"
-
-        # Step 1: GET Request to fetch login token
-        PARAMS_0 = {
-            "action": "query",
-            "meta": "tokens",
-            "type": "login",
-            "format": "json"
-        }
-
-        R = S.get(url=URL, params=PARAMS_0)
-        DATA = R.json()
-
-        LOGIN_TOKEN = DATA['query']['tokens']['logintoken']
-
-        # Step 2: POST Request to log in. Use of main account for login is not
-        # supported. Obtain credentials via Special:BotPasswords
-        # (https://www.mediawiki.org/wiki/Special:BotPasswords) for lgname & lgpassword
-        PARAMS_1 = {
-            "action": "login",
-            "lgname": wikilogin.lgname,
-            "lgpassword": wikilogin.lgpassword,
-            "lgtoken": LOGIN_TOKEN,
-            "format": "json"
-        }
-
-        R = S.post(URL, data=PARAMS_1)
-
-        # Step 3: GET request to fetch CSRF token
-        PARAMS_2 = {
-            "action": "query",
-            "meta": "tokens",
-            "format": "json"
-        }
-
-        R = S.get(url=URL, params=PARAMS_2)
-        DATA = R.json()
-
-        CSRF_TOKEN = DATA['query']['tokens']['csrftoken']
-
         # Step 4: POST request to edit a page
         PARAMS_3 = {
             "action": "edit",
